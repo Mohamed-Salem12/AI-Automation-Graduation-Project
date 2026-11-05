@@ -1,0 +1,199 @@
+{
+  "name": "Ingestion Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "9ffa80c7-980e-427a-94b2-817718f38dbf",
+        "responseMode": "lastNode",
+        "options": {
+          "binaryPropertyName": "File"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        224
+      ],
+      "id": "4d418434-0835-4698-a313-57530f4d0107",
+      "name": "Webhook",
+      "webhookId": "9ffa80c7-980e-427a-94b2-817718f38dbf"
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.fileName.split('_')[0] }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Nk9Da0QgcuhNPLg0Bj0B2wAQAroYpld6",
+          "mode": "list",
+          "cachedResultName": "Monthly_Sales_Reports",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Nk9Da0QgcuhNPLg0Bj0B2wAQAroYpld6"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        896,
+        224
+      ],
+      "id": "5caaa477-f386-434b-b369-cd625c02f341",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "9omje0QZnUyTAdGo",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst output = [];\n\nfor (const item of $input.all()) {\n  for (const [key, file] of Object.entries(item.binary ?? {})) {\n    output.push({\n      json: {\n        fileName: file.fileName,\n        originalField: key,\n      },\n      binary: {\n        data: file,\n      },\n    });\n  }\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        224
+      ],
+      "id": "5b60702b-50e1-4663-bb17-15eeabfb5b92",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1KmwnGk-qA4pjvsdQAW4fHx_9ApbWU7xcJdwZvGvHMYY",
+          "mode": "list",
+          "cachedResultName": "Sales_Reports_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KmwnGk-qA4pjvsdQAW4fHx_9ApbWU7xcJdwZvGvHMYY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KmwnGk-qA4pjvsdQAW4fHx_9ApbWU7xcJdwZvGvHMYY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Branch Name": "={{ $json.name }}",
+            "Month": "May 2026",
+            "Upload Date": "={{ $now.format('yyyy-MM-dd') }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Branch Name",
+              "displayName": "Branch Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Month",
+              "displayName": "Month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Upload Date",
+              "displayName": "Upload Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        224
+      ],
+      "id": "e7d8bbac-7444-4650-9399-d68c78056f2d",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cuwjY6lt1i1ieX9I",
+          "name": "Google Sheets account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5319569b-2fb2-40f1-9a4b-3146166d3d7d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9a7e9251993bdc8548ac86cb60adce8484b910b94ddeff6d47f79369605133db"
+  },
+  "nodeGroups": [],
+  "id": "ERkRu6qzX5qjImZ1",
+  "tags": []
+}
